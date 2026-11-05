@@ -24,6 +24,18 @@ https://denysmatsevych.github.io/web-development-2026/react/labs/lab-2/
 
 ```text
 App
+├── Header
+├── Card "Тімлід"
+│   └── Avatar
+└── Card "Команда"
+    ├── Profile
+    │   └── Avatar
+    ├── Profile
+    │   └── Avatar
+    ├── Profile
+    │   └── Avatar
+    └── Profile
+        └── Avatar
 ```
 
 ## Дерево залежностей модулів
@@ -32,4 +44,12 @@ App
 
 ```text
 main.jsx
+├── index.css
+└── App.jsx
+    ├── components/Header.jsx
+    ├── components/Avatar.jsx
+    ├── components/Profile.jsx
+    │   └── components/Avatar.jsx
+    ├── components/Card.jsx
+    └── data.js
 ```
