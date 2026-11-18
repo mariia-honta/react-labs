@@ -1,11 +1,10 @@
 import GuestsStepper from './GuestsStepper.jsx'
 import { sendBooking } from '../api.js'
-import { startTransition, useActionState } from 'react'
-import { Controller, useForm, useWatch } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { startTransition, useActionState, useRef } from 'react'
 import { bookingSchema } from '../bookingSchema.js'
+import { useFormik } from 'formik'
 
-const defaultValues = {
+const initialValues = {
   name: '',
   phone: '',
   date: '',
@@ -14,34 +13,38 @@ const defaultValues = {
   comment: '',
 }
 
+const fieldOrder = ['name', 'phone', 'date', 'time']
+
 export default function BookingForm() {
-  const {
-    register,
-    control,
-    handleSubmit,
-    reset,
-    setFocus,
-    getValues,
-    trigger,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(bookingSchema),
-    defaultValues,
-    mode: 'onTouched',
-  })
-  const comment = useWatch({ control, name: 'comment' })
+  const nameRef = useRef(null)
   const [result, dispatch, isPending] = useActionState(bookTable, null)
+  const formik = useFormik({
+    initialValues,
+    validationSchema: bookingSchema,
+    onSubmit: (values) => {
+      if (isPending) return
+      const booking = bookingSchema.cast(values)
+      startTransition(() => dispatch(booking))
+    },
+  })
 
   async function bookTable(previousResult, booking) {
     if (booking === null) return null
     const response = await sendBooking(booking)
-    if (response.ok) startTransition(() => reset())
+    if (response.ok) startTransition(() => formik.resetForm())
     return response
   }
 
-  function onValid(data) {
-    if (isPending) return
-    startTransition(() => dispatch(data))
+  function errorOf(name) {
+    return formik.touched[name] ? formik.errors[name] : undefined
+  }
+
+  async function handleSubmit(e) {
+    const form = e.currentTarget
+    formik.handleSubmit(e)
+    const errors = await formik.validateForm()
+    const firstInvalid = fieldOrder.find((name) => errors[name])
+    if (firstInvalid) form.elements[firstInvalid].focus()
   }
 
   function handleKeyDown(e) {
@@ -51,31 +54,32 @@ export default function BookingForm() {
   }
 
   function handleReset() {
-    setFocus('name')
-    reset()
+    formik.resetForm()
+    nameRef.current.focus()
     startTransition(() => dispatch(null))
   }
 
   return (
     <form
       className="booking-form"
-      onKeyDown={handleKeyDown}
-      onSubmit={handleSubmit(onValid)}
       noValidate
+      onSubmit={handleSubmit}
+      onKeyDown={handleKeyDown}
     >
       <div className="field">
         <label>
           Ім'я
           <input
-            {...register('name')}
+            {...formik.getFieldProps('name')}
+            ref={nameRef}
             autoComplete="name"
             required
-            aria-invalid={errors.name ? 'true' : 'false'}
+            aria-invalid={errorOf('name') ? 'true' : 'false'}
             aria-describedby="name-error"
           />
         </label>
         <p id="name-error" className="field-error">
-          {errors.name?.message}
+          {errorOf('name')}
         </p>
       </div>
       <div className="field">
@@ -83,16 +87,16 @@ export default function BookingForm() {
           Телефон
           <input
             type="tel"
-            {...register('phone')}
+            {...formik.getFieldProps('phone')}
             autoComplete="tel"
             placeholder="+380671234567"
             required
-            aria-invalid={errors.phone ? 'true' : 'false'}
+            aria-invalid={errorOf('phone') ? 'true' : 'false'}
             aria-describedby="phone-error"
           />
         </label>
         <p id="phone-error" className="field-error">
-          {errors.phone?.message}
+          {errorOf('phone')}
         </p>
       </div>
       <div className="row">
@@ -101,18 +105,14 @@ export default function BookingForm() {
             Дата
             <input
               type="date"
-              {...register('date', {
-                onChange: () => {
-                  if (getValues('time')) trigger('time')
-                },
-              })}
+              {...formik.getFieldProps('date')}
               required
-              aria-invalid={errors.date ? 'true' : 'false'}
+              aria-invalid={errorOf('date') ? 'true' : 'false'}
               aria-describedby="date-error"
             />
           </label>
           <p id="date-error" className="field-error">
-            {errors.date?.message}
+            {errorOf('date')}
           </p>
         </div>
         <div className="field">
@@ -120,34 +120,31 @@ export default function BookingForm() {
             Час
             <input
               type="time"
-              {...register('time')}
+              {...formik.getFieldProps('time')}
               required
-              aria-invalid={errors.time ? 'true' : 'false'}
+              aria-invalid={errorOf('time') ? 'true' : 'false'}
               aria-describedby="time-error"
             />
           </label>
           <p id="time-error" className="field-error">
-            {errors.time?.message}
+            {errorOf('time')}
           </p>
         </div>
       </div>
-      <Controller
-        name="guests"
-        control={control}
-        render={({ field }) => (
-          <GuestsStepper value={field.value} onChange={field.onChange} />
-        )}
+      <GuestsStepper
+        value={formik.values.guests}
+        onChange={(guests) => formik.setFieldValue('guests', guests)}
       />
       <label>
         Коментар
         <textarea
-          {...register('comment')}
+          {...formik.getFieldProps('comment')}
           maxLength={200}
           aria-describedby="comment-counter"
         />
       </label>
       <p id="comment-counter" className="counter">
-        {comment.length} / 200
+        {formik.values.comment.length} / 200
       </p>
       <div className="actions">
         <button type="submit" aria-disabled={isPending}>
