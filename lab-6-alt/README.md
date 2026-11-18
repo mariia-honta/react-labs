@@ -32,3 +32,39 @@ https://denysmatsevych.github.io/web-development-2026/react/labs/lab-6/
 - `npm run lint`: ESLint
 - `npm run format:check`: перевірка форматування Prettier
 - `npm run build`: production-збірка в `dist/`
+
+## Порівняння з React Hook Form і Zod
+
+### Бібліотеки та версії
+
+| Версія      | Форма                | Схема     | Останній реліз                          |
+| ----------- | -------------------- | --------- | --------------------------------------- |
+| `lab-6`     | react-hook-form 7.92 | zod 4.6   | RHF — листопад 2026, Zod — жовтень 2026 |
+| `lab-6-alt` | formik 2.4.9         | yup 1.7.1 | Formik — 10.11.2025, Yup — 21.09.2025   |
+
+### Що замінило API React Hook Form
+
+| React Hook Form | Formik + Yup                                                     |
+| --------------- | ---------------------------------------------------------------- |
+| register        | formik.getFieldProps('name')                                     |
+| Controller      | value={formik.values.guests} і formik.setFieldValue('guests', …) |
+| useWatch        | formik.values.comment                                            |
+| handleSubmit    | formik.handleSubmit і опція onSubmit у useFormik                 |
+| zodResolver     | validationSchema: bookingSchema                                  |
+| reset           | formik.resetForm()                                               |
+
+### Розмір збірки
+
+- lab-6: 353.65 kB | gzip 109.70 kB
+- lab-6-alt: 358.84 kB | gzip 111.76 kB
+
+### Рендери під час введення в полі «Ім'я»
+
+- React Hook Form: поки ви вводите ім'я, нічого не рендериться. Поле
+  неконтрольоване, значення живе в DOM.
+- Formik: BookingForm і GuestsStepper рендеряться з кожною літерою. Поля
+  контрольовані, значення живе в стані Formik.
+
+### Висновок
+
+Для наступного проєкту я б обрала React Hook Form і Zod. Коли переписувалаформу на Formik і Yup, багато речей довелося робити вручну: ставити курсор у перше неправильне поле, приховувати повідомлення для полів, які ще не заповнювали, і додавати `required`, бо Formik перетворює порожні рядки на `undefined`. Також у DevTools, Formik форма рендериться після кожної введеної літери, а з React Hook Form лише тоді, коли зникає помилка. Ще також Formik і Yup не оновлювалися понад рік, тоді як React Hook Form і Zod отримують нові версії майже щомісяця.
