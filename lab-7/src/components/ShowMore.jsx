@@ -8,20 +8,21 @@
  *
  * Вимоги — у тестах tests/ShowMore.test.jsx.
  */
-import { useState } from 'react'
+import { useShowMore } from '../hooks/useShowMore.js'
 export default function ShowMore({ items, step, children }) {
-  const [count, setCount] = useState(3)
-  const visibleReviews = items.slice(0, count)
-  const hiddenCount = items.length - visibleReviews.length
+  const { visibleItems, hiddenCount, showMore, collapse } = useShowMore(
+    items,
+    step,
+  )
 
   return (
     <>
-      {children(visibleReviews)}
+      {children(visibleItems)}
       {items.length > step && (
         <button
           type="button"
           className="show-more"
-          onClick={() => setCount(hiddenCount > 0 ? count + step : step)}
+          onClick={hiddenCount > 0 ? showMore : collapse}
         >
           {hiddenCount > 0
             ? `Показати ще ${Math.min(step, hiddenCount)}`
