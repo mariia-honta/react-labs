@@ -6,6 +6,27 @@
  *
  * Вимоги — у тестах tests/useCountdown.test.jsx.
  */
-export function useCountdown(/* totalSeconds */) {
-  throw new Error('Not implemented: useCountdown')
+import { useEffect, useState } from 'react'
+
+export function useCountdown(totalSeconds) {
+  const [secondsLeft, setSecondsLeft] = useState(totalSeconds)
+  const [isStarted, setIsStarted] = useState(false)
+  const isRunning = isStarted && secondsLeft > 0
+
+  useEffect(() => {
+    if (!isRunning) return
+    const id = setInterval(() => {
+      setSecondsLeft((s) => Math.max(s - 1, 0))
+    }, 1000)
+    return () => clearInterval(id)
+  }, [isRunning])
+
+  const start = () => setIsStarted(true)
+  const pause = () => setIsStarted(false)
+  const reset = () => {
+    setIsStarted(false)
+    setSecondsLeft(totalSeconds)
+  }
+
+  return { secondsLeft, isRunning, start, pause, reset }
 }
