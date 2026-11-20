@@ -16,7 +16,7 @@
  *
  * Вимоги — у тестах tests/Tabs.children.test.jsx і tests/Tabs.a11y.test.jsx.
  */
-import { createContext, use, useState } from 'react'
+import { createContext, use, useState, useId } from 'react'
 
 const TabsContext = createContext(null)
 
@@ -30,9 +30,10 @@ function useTabs() {
 
 export default function Tabs({ defaultValue, children }) {
   const [selected, setSelected] = useState(defaultValue)
+  const baseId = useId()
 
   return (
-    <TabsContext value={{ selected, setSelected }}>
+    <TabsContext value={{ selected, setSelected, baseId }}>
       <div className="tabs">{children}</div>
     </TabsContext>
   )
@@ -40,19 +41,43 @@ export default function Tabs({ defaultValue, children }) {
 
 function TabsList({ children, ...props }) {
   return (
-    <div className="tab-list" {...props}>
+    <div role="tablist" className="tab-list" {...props}>
       {children}
     </div>
   )
 }
 
 function TabsTab({ value, children }) {
-  const { selected, setSelected } = useTabs()
+  const { selected, setSelected, baseId } = useTabs()
+  const isSelected = selected === value
+
+  function handleKeyDown(e) {
+    const list = e.currentTarget.closest('[role="tablist"]')
+    const tabs = [...list.querySelectorAll('[role="tab"]')]
+    const index = tabs.indexOf(e.currentTarget)
+
+    let next
+    if (e.key === 'ArrowRight') next = tabs[(index + 1) % tabs.length]
+    else if (e.key === 'ArrowLeft')
+      next = tabs[(index - 1 + tabs.length) % tabs.length]
+    else if (e.key === 'Home') next = tabs[0]
+    else if (e.key === 'End') next = tabs[tabs.length - 1]
+    else return
+
+    e.preventDefault()
+    next.focus()
+    next.click()
+  }
   return (
     <button
       type="button"
-      className={selected === value ? 'active' : ''}
+      role="tab"
+      id={`${baseId}-tab-${value}`}
+      aria-selected={isSelected}
+      aria-controls={`${baseId}-panel-${value}`}
+      tabIndex={isSelected ? 0 : -1}
       onClick={() => setSelected(value)}
+      onKeyDown={handleKeyDown}
     >
       {children}
     </button>
@@ -60,8 +85,19 @@ function TabsTab({ value, children }) {
 }
 
 function TabsPanel({ value, children }) {
-  const { selected } = useTabs()
-  return <div hidden={selected !== value}>{children}</div>
+  const { selected, baseId } = useTabs()
+
+  return (
+    <div
+      role="tabpanel"
+      id={`${baseId}-panel-${value}`}
+      aria-labelledby={`${baseId}-tab-${value}`}
+      tabIndex={0}
+      hidden={selected !== value}
+    >
+      {children}
+    </div>
+  )
 }
 
 Tabs.List = TabsList
