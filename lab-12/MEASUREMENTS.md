@@ -31,12 +31,12 @@
 
 | Компонент        | Після §4.5 | Після §4.6 |
 | ---------------- | ---------- | ---------- |
-| `App`            | так        |            |
-| `QueueProvider`  | так        |            |
-| `QueuePanel`     | -          |            |
-| `OrderComposer`  | так        |            |
-| `HistoryButtons` | так        |            |
-| `OrderDetails`   | так        |            |
-| `OrderBoard`     | так        |            |
-| `OrderColumn`    | так        |            |
-| `OrderCard`      | так        |            |
+| `App`            | так        | ні         |
+| `QueueProvider`  | так        | ні         |
+| `QueuePanel`     | -          | так        |
+| `OrderComposer`  | так        | ні         |
+| `HistoryButtons` | так        | так        |
+| `OrderDetails`   | так        | так        |
+| `OrderBoard`     | так        | так        |
+| `OrderColumn`    | так        | так        |
+| `OrderCard`      | так        | так        |
