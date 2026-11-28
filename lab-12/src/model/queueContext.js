@@ -1,3 +1,4 @@
+import { createContext } from 'react'
 /**
  * Контексти черги замовлень і хуки, які їх читають.
  *
@@ -17,6 +18,9 @@
  */
 
 /** { queue, canUndo, canRedo } з найближчого QueueProvider. */
+export const QueueContext = createContext(null)
+export const QueueDispatchContext = createContext(null)
+
 export function useQueue() {
   throw new Error('Not implemented: useQueue')
 }
